@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Farhat Basir | Biomedical Signal & Medical Image Processing</title>
+<meta name="description" content="Farhat Basir — Biomedical Engineer specializing in ECG, EEG, PPG, DICOM, echocardiography pipelines, deep learning for medical imaging, and research writing. Available on Upwork."/>
+<meta name="keywords" content="ECG signal processing, EEG analysis, DICOM medical imaging, echocardiography deep learning, biomedical engineering freelancer, medical image segmentation, PPG GSR biosignal, cardiac imaging AI, Upwork biomedical, Farhat Basir"/>
+<meta property="og:title" content="Farhat Basir | Biomedical Signal & Medical Image Processing"/>
+<meta property="og:description" content="Biomedical Engineer specializing in ECG, DICOM, echocardiography pipelines and deep learning for clinical data."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080D14;
+    --surface:   #0E1620;
+    --card:      #111D2B;
+    --border:    #1A2E44;
+    --accent:    #00C2FF;
+    --accent2:   #0077FF;
+    --pulse:     #00FF94;
+    --text:      #E8F0F8;
+    --muted:     #7A9BB5;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Space Grotesk', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── ECG canvas background ── */
+  #ecg-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.04; pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(8,13,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100; padding: 14px 0;
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--accent); letter-spacing: 0.08em;
+  }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a {
+    font-size: 13px; color: var(--muted);
+    text-decoration: none; letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding-top: 80px;
+  }
+  .hero-tag {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--accent); letter-spacing: 0.12em;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .hero-tag::before {
+    content: ''; display: inline-block;
+    width: 28px; height: 1px; background: var(--accent);
+  }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 72px);
+    font-weight: 700; line-height: 1.05;
+    letter-spacing: -0.02em; margin-bottom: 24px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 18px; color: var(--muted);
+    max-width: 580px; line-height: 1.7; margin-bottom: 36px;
+  }
+  .hero-sub strong { color: var(--text); }
+
+  /* live signal strip */
+  .signal-strip {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 40px;
+  }
+  .sig-label { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .sig-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pulse); animation: blink 1.4s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .sig-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sig-tag {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--pulse); background: rgba(0,255,148,0.08);
+    border: 1px solid rgba(0,255,148,0.2);
+    padding: 3px 10px; border-radius: 3px;
+  }
+
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent2); color: #fff;
+    padding: 13px 28px; border-radius: 6px;
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    text-decoration: none; transition: background 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+  .btn-secondary {
+    border: 1px solid var(--border); color: var(--muted);
+    padding: 13px 28px; border-radius: 6px;
+    font-family: var(--sans); font-size: 14px;
+    text-decoration: none; transition: border-color 0.2s, color 0.2s;
+    display: inline-block;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── SECTIONS ── */
+  section { padding: 90px 0; }
+  .sec-label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.14em;
+    margin-bottom: 12px; display: block;
+  }
+  .sec-title {
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .sec-sub { color: var(--muted); font-size: 16px; max-width: 560px; line-height: 1.7; margin-bottom: 50px; }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* ── WHAT I DO ── */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .service-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 28px;
+    transition: border-color 0.25s, transform 0.2s;
+  }
+  .service-card:hover { border-color: var(--accent2); transform: translateY(-3px); }
+  .svc-icon { font-size: 24px; margin-bottom: 14px; }
+  .svc-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .svc-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+  .svc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .svc-tag {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--accent); background: rgba(0,194,255,0.07);
+    border: 1px solid rgba(0,194,255,0.15);
+    padding: 2px 8px; border-radius: 3px;
+  }
+
+  /* ── PIPELINE ── */
+  .pipeline {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 36px;
+  }
+  .pipe-title { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 28px; letter-spacing: 0.1em; }
+  .pipe-steps { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 0; }
+  .pipe-step { display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 100px; position: relative; }
+  .pipe-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -12px; top: 12px;
+    color: var(--accent); font-size: 16px;
+  }
+  .pipe-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,119,255,0.15); border: 1px solid var(--accent2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .pipe-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .pipe-detail { font-size: 11px; color: var(--muted); line-height: 1.5; padding: 0 6px; }
+
+  /* ── RESEARCH ── */
+  .research-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 28px 32px; margin-bottom: 16px;
+  }
+  .research-badge {
+    font-family: var(--mono); font-size: 10px;
+    background: rgba(0,255,148,0.1); color: var(--pulse);
+    border: 1px solid rgba(0,255,148,0.25);
+    padding: 3px 10px; border-radius: 3px;
+    display: inline-block; margin-bottom: 12px;
+  }
+  .research-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .research-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .research-stack { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .research-pill {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 3px;
+  }
+
+  /* ── STACK ── */
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .stack-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 16px;
+    text-align: center; transition: border-color 0.2s;
+  }
+  .stack-item:hover { border-color: var(--accent2); }
+  .stack-item .si-icon { font-size: 22px; margin-bottom: 8px; }
+  .stack-item .si-name { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ── WHY ME ── */
+  .why-box {
+    background: linear-gradient(135deg, rgba(0,119,255,0.08), rgba(0,194,255,0.04));
+    border: 1px solid rgba(0,194,255,0.2);
+    border-radius: 12px; padding: 40px 44px;
+  }
+  .why-quote {
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 500; line-height: 1.55;
+    color: var(--text); margin-bottom: 20px;
+  }
+  .why-quote em { color: var(--accent); font-style: normal; }
+  .why-note { font-size: 14px; color: var(--muted); }
+
+  /* ── CTA ── */
+  .cta-section {
+    text-align: center; padding: 100px 0;
+    background: radial-gradient(ellipse at center, rgba(0,119,255,0.06) 0%, transparent 70%);
+  }
+  .cta-section h2 { font-size: clamp(28px,4vw,46px); font-weight:700; letter-spacing:-0.02em; margin-bottom:16px; }
+  .cta-section p { color:var(--muted); font-size:17px; margin-bottom:36px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0; text-align: center;
+  }
+  footer p { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media(max-width:640px){
+    .pipe-steps { flex-direction: column; gap: 16px; }
+    .pipe-step:not(:last-child)::after { content:'↓'; right:auto; top:auto; bottom:-14px; }
+    .why-box { padding: 28px 24px; }
+    nav .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="ecg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap">
+    <span class="nav-logo">farhat.basir</span>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#pipeline">Pipeline</a></li>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#contact">Hire Me</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-tag">Biomedical Engineer · Freelance Researcher</div>
+    <h1>I turn biomedical<br/>data into <span>results</span>.</h1>
+    <p class="hero-sub">
+      If your data came from a <strong>sensor on a human body</strong> or a <strong>medical imaging device</strong> —
+      ECG, EEG, PPG, DICOM, echocardiography — I know exactly what to do with it.
+      Preprocessing to classification to paper writeup, end to end.
+    </p>
+    <div class="signal-strip">
+      <span class="sig-label">ACTIVE SIGNALS</span>
+      <span class="sig-dot"></span>
+      <div class="sig-tags">
+        <span class="sig-tag">ECG</span>
+        <span class="sig-tag">EEG</span>
+        <span class="sig-tag">PPG</span>
+        <span class="sig-tag">GSR</span>
+        <span class="sig-tag">DICOM</span>
+        <span class="sig-tag">ECHO</span>
+      </div>
+    </div>
+    <div class="cta-row">
+      <a class="btn-primary" href="https://www.upwork.com/freelancers/farhatbasir" target="_blank">Hire on Upwork</a>
+      <a class="btn-secondary" href="#services">See What I Do</a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="wrap">
+    <span class="sec-label">WHAT I DO</span>
+    <h2 class="sec-title">Full pipeline. One person.</h2>
+    <p class="sec-sub">You don't need to explain what ECG noise looks like or why DICOM is tricky — I already know, because this is all I do.</p>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="svc-icon">📡</div>
+        <div class="svc-title">Biosignal Processing</div>
+        <div class="svc-desc">Noise filtering, artifact removal, peak detection, HRV analysis, time-frequency decomposition, and feature extraction from physiological signals.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">ECG</span><span class="svc-tag">EEG</span>
+          <span class="svc-tag">PPG</span><span class="svc-tag">GSR</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">🫀</div>
+        <div class="svc-title">Medical Image & DICOM Analysis</div>
+        <div class="svc-desc">End-to-end medical imaging pipelines — DICOM loading, preprocessing, enhancement, CNN classification, U-Net segmentation, object detection.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">DICOM</span><span class="svc-tag">Echo</span>
+          <span class="svc-tag">MRI</span><span class="svc-tag">Ultrasound</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">🧠</div>
+        <div class="svc-title">Computer Vision → Clinical Modalities</div>
+        <div class="svc-desc">Translating CV methods — Grad-CAM, optical flow, attention maps, FPN, contour analysis — into clinical imaging pipelines for echo, ECG plots, and MRI.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">Grad-CAM</span><span class="svc-tag">Segmentation</span>
+          <span class="svc-tag">Detection</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">⚙️</div>
+        <div class="svc-title">ML / DL Model Development</div>
+        <div class="svc-desc">Model building, transfer learning, hybrid hand-crafted + deep feature fusion, hyperparameter tuning, ablation studies. PyTorch and TensorFlow.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">PyTorch</span><span class="svc-tag">TensorFlow</span>
+          <span class="svc-tag">CNN</span><span class="svc-tag">LSTM</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">🔄</div>
+        <div class="svc-title">Reproducible Research Pipelines</div>
+        <div class="svc-desc">GitHub-versioned experiments → Google Colab deployable notebooks. Clean, documented, shareable code your collaborators can actually run.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">GitHub</span><span class="svc-tag">Colab</span>
+          <span class="svc-tag">Python</span><span class="svc-tag">MATLAB</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">📊</div>
+        <div class="svc-title">Statistical Analysis</div>
+        <div class="svc-desc">Hypothesis testing, regression, ROC/AUC, performance benchmarking, confusion matrices, and results interpretation in Python and R.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">Python</span><span class="svc-tag">R</span>
+          <span class="svc-tag">RStudio</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">🗂️</div>
+        <div class="svc-title">Research Diagrams & Figures</div>
+        <div class="svc-desc">Draw.io methodology block diagrams, pipeline architecture figures, system flow diagrams — publication-ready visual documentation for your paper.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">Draw.io</span><span class="svc-tag">IEEE figures</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="svc-icon">✍️</div>
+        <div class="svc-title">Research & Technical Writing</div>
+        <div class="svc-desc">Full paper drafts, methodology and results sections, IEEE/APA formatting, LaTeX typesetting, and journal editing for peer-reviewed submissions.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">LaTeX</span><span class="svc-tag">IEEE</span>
+          <span class="svc-tag">APA</span><span class="svc-tag">MS Word</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="wrap">
+    <span class="sec-label">HOW IT WORKS</span>
+    <h2 class="sec-title">Raw data → published result.</h2>
+    <p class="sec-sub">Every project I take follows the same rigorous pipeline — the same one I use in my own peer-reviewed research.</p>
+    <div class="pipeline">
+      <div class="pipe-title">// STANDARD BIOMEDICAL DATA PIPELINE</div>
+      <div class="pipe-steps">
+        <div class="pipe-step">
+          <div class="pipe-num">01</div>
+          <div class="pipe-name">Acquisition</div>
+          <div class="pipe-detail">Signal/image loading, format parsing, DICOM handling</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">02</div>
+          <div class="pipe-name">Preprocessing</div>
+          <div class="pipe-detail">Noise removal, artifact rejection, normalization</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">03</div>
+          <div class="pipe-name">Feature Extraction</div>
+          <div class="pipe-detail">Hand-crafted + deep learning feature fusion</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">04</div>
+          <div class="pipe-name">Modelling</div>
+          <div class="pipe-detail">ML/DL training, tuning, validation</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">05</div>
+          <div class="pipe-name">Analysis</div>
+          <div class="pipe-detail">Statistical tests, metrics, interpretation</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">06</div>
+          <div class="pipe-name">Writeup</div>
+          <div class="pipe-detail">Paper, figures, Draw.io diagrams, LaTeX</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- RESEARCH -->
+<section id="research">
+  <div class="wrap">
+    <span class="sec-label">RESEARCH</span>
+    <h2 class="sec-title">I don't just do this for clients.</h2>
+    <p class="sec-sub">Active research in the same problems you're working on — which means I understand your data at a deeper level than a generic ML freelancer.</p>
+
+    <div class="research-card">
+      <span class="research-badge">● UNDER REVIEW — PeerJ</span>
+      <div class="research-title">Hybrid Feature Fusion for Myocardial Infarction Classification from Echocardiography</div>
+      <div class="research-desc">Novel pipeline combining hand-engineered echocardiographic features (wall motion scoring, strain indices, cavity dimensions) with global CNN-extracted deep representations. Fused architecture achieves improved MI vs. non-MI classification with clinical interpretability via Grad-CAM.</div>
+      <div class="research-stack">
+        <span class="research-pill">PyTorch</span>
+        <span class="research-pill">DICOM</span>
+        <span class="research-pill">CNN</span>
+        <span class="research-pill">Hybrid Fusion</span>
+        <span class="research-pill">Grad-CAM</span>
+        <span class="research-pill">Echocardiography</span>
+      </div>
+    </div>
+
+    <div class="research-card">
+      <span class="research-badge">● COMPLETED — FYP Research</span>
+      <div class="research-title">Multimodal Biosignal Analysis for ASD Detection in Children (ECG + PPG + GSR)</div>
+      <div class="research-desc">Designed data acquisition protocol and full preprocessing pipeline for ECG, PPG, and GSR signals collected from neurotypical and ASD-diagnosed children (ages 6–12) during Stroop cognitive tasks. Built multimodal feature fusion classifier in Python and MATLAB.</div>
+      <div class="research-stack">
+        <span class="research-pill">ECG</span>
+        <span class="research-pill">PPG</span>
+        <span class="research-pill">GSR</span>
+        <span class="research-pill">MATLAB</span>
+        <span class="research-pill">Python</span>
+        <span class="research-pill">Multimodal Fusion</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="wrap">
+    <span class="sec-label">TOOLS & STACK</span>
+    <h2 class="sec-title">What I work with.</h2>
+    <p class="sec-sub">Every tool in this list is something I use on real projects — not a checkbox on a profile.</p>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="si-icon">🐍</div><div class="si-name">Python</div></div>
+      <div class="stack-item"><div class="si-icon">📐</div><div class="si-name">MATLAB</div></div>
+      <div class="stack-item"><div class="si-icon">🔥</div><div class="si-name">PyTorch</div></div>
+      <div class="stack-item"><div class="si-icon">🤖</div><div class="si-name">TensorFlow</div></div>
+      <div class="stack-item"><div class="si-icon">🐙</div><div class="si-name">GitHub</div></div>
+      <div class="stack-item"><div class="si-icon">☁️</div><div class="si-name">Google Colab</div></div>
+      <div class="stack-item"><div class="si-icon">📊</div><div class="si-name">R / RStudio</div></div>
+      <div class="stack-item"><div class="si-icon">🗂️</div><div class="si-name">Draw.io</div></div>
+      <div class="stack-item"><div class="si-icon">📄</div><div class="si-name">LaTeX</div></div>
+      <div class="stack-item"><div class="si-icon">🫀</div><div class="si-name">DICOM</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- WHY ME -->
+<section>
+  <div class="wrap">
+    <span class="sec-label">WHY CHOOSE ME</span>
+    <div class="why-box">
+      <div class="why-quote">
+        "You don't need to explain what ECG noise looks like or why DICOM is tricky —
+        <em>I already know, because this is all I do.</em>"
+      </div>
+      <div class="why-note">
+        I work exclusively in biomedical signals and medical images. Not general data science, not NLP, not web projects.
+        If your data came from a sensor on a human body or a medical imaging device, I've worked with it.
+        4+ years · 20+ projects · active peer-reviewed research · full pipeline from raw data to published result.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="wrap">
+    <h2>Ready to get started?</h2>
+    <p>Message me on Upwork. Describe your data, your goal, and your deadline.<br/>I'll tell you honestly what's achievable and how I'd approach it.</p>
+    <a class="btn-primary" href="https://www.upwork.com/freelancers/farhatbasir" target="_blank">
+      Hire Farhat on Upwork →
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Farhat Basir · Biomedical Signal & Medical Image Processing ·
+      <a href="https://www.upwork.com/freelancers/farhatbasir" target="_blank">Upwork</a> ·
+      <a href="https://github.com/farhatbasir" target="_blank">GitHub</a> ·
+      <a href="https://linkedin.com/in/farhatbasir" target="_blank">LinkedIn</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+// Animated ECG background
+const canvas = document.getElementById('ecg-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+function ecgY(x) {
+  const t = (x % 200) / 200;
+  if (t < 0.3) return 0;
+  if (t < 0.35) return -80 * Math.sin((t - 0.3) / 0.05 * Math.PI);
+  if (t < 0.4) return 0;
+  if (t < 0.43) return -20 * Math.sin((t - 0.4) / 0.03 * Math.PI);
+  if (t < 0.46) return 180 * Math.sin((t - 0.43) / 0.03 * Math.PI);
+  if (t < 0.50) return -40 * Math.sin((t - 0.46) / 0.04 * Math.PI);
+  if (t < 0.55) return 0;
+  if (t < 0.7) return 20 * Math.sin((t - 0.55) / 0.15 * Math.PI);
+  return 0;
+}
+
+let offset = 0;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const rows = Math.ceil(canvas.height / 120) + 1;
+  for (let r = 0; r < rows; r++) {
+    const cy = r * 120 + 60;
+    ctx.beginPath();
+    ctx.strokeStyle = '#00C2FF';
+    ctx.lineWidth = 1.5;
+    for (let x = 0; x <= canvas.width + 200; x += 2) {
+      const px = x;
+      const py = cy + ecgY(x + offset + r * 73);
+      x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  offset += 1.2;
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
